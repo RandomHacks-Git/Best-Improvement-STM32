@@ -2,6 +2,8 @@
 
 In this repo you find the source code for my *Best Improvement* board, a better board with better firmware to control the Best BST-863 hot air station.
 
+![P_20210616_151618](https://user-images.githubusercontent.com/22402348/122618720-c0933500-d086-11eb-9c9e-343b56c9db97.jpg)
+
 You can buy the board on my [tindie store](https://www.tindie.com/products/randomhacks).
 
 ## Presentation
