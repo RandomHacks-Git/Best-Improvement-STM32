@@ -1,6 +1,6 @@
 ## Best Improvement Source Code
 
-Source code for my Best Improvement board, a better board with better firmware to control the Best BST-863 hot air station.
+In this repo you find the source code for my *Best Improvement* board, a better board with better firmware to control the Best BST-863 hot air station.
 
 You can buy the board on my [tindie store](https://www.tindie.com/products/randomhacks).
 
@@ -14,3 +14,6 @@ You can buy the board on my [tindie store](https://www.tindie.com/products/rando
 - [Arduino PID Library](https://github.com/br3ttb/Arduino-PID-Library) 
 
 If there is a compiling error you might need to install SAMD M0+ boards through the boards manager on Arduino IDE
+
+## LCD Segment Map (address.bit)
+![screen](https://user-images.githubusercontent.com/22402348/122617705-a9534800-d084-11eb-99ad-1f811887d4a2.jpg)
