@@ -18,4 +18,5 @@ You can buy the board on my [tindie store](https://www.tindie.com/products/rando
 If there is a compiling error you might need to install SAMD M0+ boards through the boards manager on Arduino IDE
 
 ## LCD Segment Map (address.bit)
-![screen](https://user-images.githubusercontent.com/22402348/122617705-a9534800-d084-11eb-99ad-1f811887d4a2.jpg)
+![best_screen](https://user-images.githubusercontent.com/22402348/122642605-389f4080-d103-11eb-9584-3d8756610975.jpg)
+
