@@ -7,7 +7,7 @@ In this repo you find the source code for my *Best Improvement* board, a better 
 You can buy the board on my [tindie store](https://www.tindie.com/products/randomhacks).
 
 ## Presentation
-
+[![thumbnail_play](https://user-images.githubusercontent.com/22402348/122684123-89926000-d1fb-11eb-8669-0728cc79c642.png)](https://youtu.be/LG0w-4zyZ5E "Watch on youtube")
 
 ## Required core/libraries to compile
 - [Arduino STM32 core](https://github.com/stm32duino/Arduino_Core_STM32)
