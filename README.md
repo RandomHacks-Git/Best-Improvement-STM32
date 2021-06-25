@@ -11,6 +11,10 @@ You can buy the board on my [tindie store](https://www.tindie.com/products/rando
 ## Presentation
 [![thumbnail_play](https://user-images.githubusercontent.com/22402348/122684123-89926000-d1fb-11eb-8669-0728cc79c642.png)](https://youtu.be/LG0w-4zyZ5E "Watch on youtube")
 
+## Installation instructions
+[![installation_play](https://user-images.githubusercontent.com/22402348/123418062-80651280-d5b0-11eb-8f5c-cf0bc57c273a.jpg)](https://www.youtube.com/watch?v=_PKAgJuqW78 "Watch on youtube")
+
+
 ## Required core/libraries to compile
 - [Arduino STM32 core](https://github.com/stm32duino/Arduino_Core_STM32)
 - [HT1621 (LCD controller)](https://github.com/altLab/HT1621) 
