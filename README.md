@@ -4,7 +4,7 @@ In this repo you find the source code for my *Best Improvement* board, a better 
 
 ![P_20210616_151618](https://user-images.githubusercontent.com/22402348/122618720-c0933500-d086-11eb-9c9e-343b56c9db97.jpg)
 
-You can buy the board on my [tindie store](https://www.tindie.com/products/randomhacks).
+You can buy the board on my [tindie store](https://www.tindie.com/stores/randomhacks).
 
 ## Presentation
 [![thumbnail_play](https://user-images.githubusercontent.com/22402348/122684123-89926000-d1fb-11eb-8669-0728cc79c642.png)](https://youtu.be/LG0w-4zyZ5E "Watch on youtube")
