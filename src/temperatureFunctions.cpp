@@ -104,4 +104,5 @@ int calibrateTemp(bool type) {
       else return handleTempUnit((readTemp(1) - otherSettings.calTemp), 0); //ºF
     }
   }
+  return -1;
 }
