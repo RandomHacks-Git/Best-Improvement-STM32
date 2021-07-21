@@ -54,7 +54,7 @@ struct chSettings {
   unsigned short blow;
 };
 
-struct otherSettings {
+struct structOtherSettings {
   bool tempUnit; //1 for ºC, 0 for ºF
   bool buzzer;
   byte selectedCh;
@@ -63,7 +63,7 @@ struct otherSettings {
 };
 
 chSettings ch1Settings, ch2Settings, ch3Settings, touchSettings;
-otherSettings otherSettings;
+structOtherSettings otherSettings;
 
 unsigned int eepromCheck = 1234567890; //used in setup to check if settings where previously saved to flash (emulated eeprom)
 
