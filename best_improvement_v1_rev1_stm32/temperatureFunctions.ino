@@ -16,7 +16,7 @@ float readTemp(bool unit) {
         ht.writeMem(i, 0);
       }
       char text[] = "Thermocouple error   ";
-      printText(MAIN, text, 1); 
+      printText(MAIN, text, 1);
     }
     if (currentTemp >= 650) { //in case for some reason the temperature gets higher than this value the heater is disabled, blower put at max and error is shown on screen (keep in mind that currentTemp is not yet calibrated here so when the station is at 550ºC the currentTemp value is actually 550*RANGE400 or 550*1.11= 610.5ºC)
       digitalWrite(HEATER, LOW);
@@ -55,13 +55,13 @@ short handleTempUnit (unsigned short temp, bool unit) {
 
 short convertToC(unsigned short temp) {
   if (otherSettings.tempUnit)return temp; //already in ºC
-  else return ((temp - 32) / 1.8); //convert from ºF to ºC
+  else return int(((temp - 32) / 1.8)); //convert from ºF to ºC
 }
 
 void heat() {
-  if (setPoint >=400) myPID.SetTunings(HIGH_KP, HIGH_KI, HIGH_KD);
-  else myPID.SetTunings(KP, KI, KD);
   calibrateTemp(1);
+  if (setPoint >= 400) myPID.SetTunings(HIGH_KP, HIGH_KI, HIGH_KD);
+  else myPID.SetTunings(KP, KI, KD);
   input = readTemp(1);
   myPID.Compute();
   if ((millis() - windowStartTime) > WINDOWSIZE) windowStartTime += WINDOWSIZE; //time to shift the Relay Window
@@ -71,35 +71,35 @@ void heat() {
 
 int calibrateTemp(bool type) {
   if (type) { //calibrate setPoint
-    setPoint = setTemp;
+    setPoint = convertToC(setTemp);
     if (setPoint >= 200) {
       if (setPoint < 300) setPoint *= RANGE200;
       else if (setPoint >= 300 && setPoint < 400) setPoint *= RANGE300;
       else if (setPoint < 500) setPoint *= RANGE400;
     }
     setPoint += otherSettings.calTemp;
-    return setPoint;
+    return handleTempUnit(setPoint, otherSettings.tempUnit);
   }
   else { //calibrate temperature reading to display on LCD
-    if (setTemp < 200) {
+    if (convertToC(setTemp) < 200) {
       if (otherSettings.tempUnit) return int(readTemp(1) - otherSettings.calTemp); //ºC
-      else return int(readTemp(0) - handleTempUnit(otherSettings.calTemp, 0)); //ºF
+      else return handleTempUnit((readTemp(1) - otherSettings.calTemp), 0); //ºF
     }
-    else if (setTemp < 300) {
+    else if (convertToC(setTemp) < 300) {
       if (otherSettings.tempUnit) return int((readTemp(1) - otherSettings.calTemp) / RANGE200); //ºC
-      else return int((readTemp(0) - handleTempUnit(otherSettings.calTemp, 0)) / RANGE200); //ºF
+      else return handleTempUnit(((readTemp(1) - otherSettings.calTemp) / RANGE200), 0); //ºF
     }
-    else if (setTemp < 400) {
+    else if (convertToC(setTemp) < 400) {
       if (otherSettings.tempUnit) return int((readTemp(1) - otherSettings.calTemp) / RANGE300); //ºC
-      else return int((readTemp(0) - handleTempUnit(otherSettings.calTemp, 0)) / RANGE300); //ºF
+      else return handleTempUnit(((readTemp(1) - otherSettings.calTemp) / RANGE300), 0); //ºF
     }
-    else if (setTemp < 500) {
+    else if (convertToC(setTemp) < 500) {
       if (otherSettings.tempUnit) return int((readTemp(1) - otherSettings.calTemp) / RANGE400); //ºC
-      else return int((readTemp(0) - handleTempUnit(otherSettings.calTemp, 0)) / RANGE400); //ºF
+      else return handleTempUnit(((readTemp(1) - otherSettings.calTemp) / RANGE400), 0); //ºF
     }
-    else if (setTemp >= 500) {
+    else if (convertToC(setTemp) >= 500) {
       if (otherSettings.tempUnit) return int(readTemp(1) - otherSettings.calTemp); //ºC
-      else return int(readTemp(0) - handleTempUnit(otherSettings.calTemp, 0)); //ºF
+      else return handleTempUnit((readTemp(1) - otherSettings.calTemp), 0); //ºF
     }
   }
 }
