@@ -1,3 +1,5 @@
+#include "global.h"
+
 byte readTouch() { //ask touch ic which button was touched
   Wire.beginTransmission(touchAddress);//(0x56); Begin transmission to the ic
   Wire.write(byte(keyValues)); //Ask the particular register for data

@@ -3,11 +3,7 @@
 //to install windows drivers see https://github.com/rogerclarkmelbourne/Arduino_STM32/wiki/Maple-drivers
 //if there is an error while compiling you might need to install SAMD M0+ boards on Arduino IDE
 
-#include <Wire.h> //for touch ic
-#include <EEPROM.h>
-#include "ht1621.h" //LCD controller https://github.com/altLab/HT1621
-#include "max6675.h" //https://learn.adafruit.com/thermocouple/arduino-code
-#include <PID_v1.h> //https://github.com/br3ttb/Arduino-PID-Library 
+#include "global.h"
 
 //LCD section addresses
 #define MAIN 17

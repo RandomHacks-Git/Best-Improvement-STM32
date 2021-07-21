@@ -1,3 +1,5 @@
+#include "global.h"
+
 void touchAction() {
   if (!digitalRead(TOUCHINT)) {
     touchMillis = millis();

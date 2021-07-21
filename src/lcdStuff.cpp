@@ -1,3 +1,5 @@
+#include "global.h"
+
 void clearDigit(byte section, byte digitNumber) {
   byte address;
   switch (section) {
