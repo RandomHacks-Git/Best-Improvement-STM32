@@ -461,6 +461,6 @@ void stopBlinking() {
 
 void changeSegment(byte address, byte bit, bool value) { //changes a single segment
   byte nowSet = ht.readMem(address); //check what is currently being displayed on address so we only change what we want
-  nowSet = bitWrite(nowSet, bit, value); //change only the segment we want (bit)
+  bitWrite(nowSet, bit, value); //change only the segment we want (bit)
   ht.writeMem(address, nowSet);
 }
