@@ -3,6 +3,7 @@
 //to install windows drivers see https://github.com/rogerclarkmelbourne/Arduino_STM32/wiki/Maple-drivers
 //if there is an error while compiling you might need to install SAMD M0+ boards on Arduino IDE
 
+#define __MAIN_CPP__
 #include "global.h"
 
 

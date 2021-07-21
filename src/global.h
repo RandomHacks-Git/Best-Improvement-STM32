@@ -130,3 +130,72 @@ int calibrateTemp(bool type);
 #define gsr 0x20 //hex address for global sensitivity register
 
 
+//-----------------------------------------------------------------------------
+// export globals defined in main.cpp, into all the other *.cpp files (except for main.cpp)
+#ifndef __MAIN_CPP__
+
+extern volatile unsigned long touchMillis;
+extern volatile bool touched, touchReleased;
+extern unsigned long lastTempPrint;
+extern unsigned long lastTempRead;
+extern unsigned long lastTempIcon;
+extern unsigned long lastSerialOutput;
+extern volatile bool reedStatus;
+extern bool btn1, btn2, btn3;
+extern volatile unsigned long btnMillis;
+extern volatile bool buttonFlag;
+extern volatile bool toneFlag, longToneFlag;
+extern unsigned long lastToneMillis;
+extern volatile bool reedFlag;
+extern volatile byte touchedButton;
+extern volatile bool readTouchFlag;
+extern unsigned long lastReact;
+extern bool standby;
+extern bool timer;
+extern bool timeUnit;
+extern volatile bool timerFlag;
+extern volatile bool setPointReached;
+extern volatile byte setPointChanged;
+extern bool converted;
+extern bool newPotValue;
+extern unsigned long potMillis;
+extern unsigned long windowStartTime;
+extern unsigned long setPointReachedTime;
+extern volatile bool heating;
+extern bool blowerOn;
+extern volatile bool coolingAfterTimer;
+extern unsigned short heaterVal, blowerVal;
+extern unsigned short setTemp, setBlow, lastSetBlow, setTimer, timerTemporary;
+extern float currentTemp;
+extern byte selectedSection;
+extern unsigned long lastBlink;
+extern bool sectionOff;
+extern bool switchDisplayed;
+extern bool displayingVersion;
+
+struct chSettings {
+  unsigned short temp;
+  unsigned short blow;
+};
+
+struct structOtherSettings {
+  bool tempUnit; //1 for ºC, 0 for ºF
+  bool buzzer;
+  byte selectedCh;
+  short calTemp; //temperature calibration value, can be negative or positive
+  bool serialOutput;
+};
+
+extern chSettings ch1Settings, ch2Settings, ch3Settings, touchSettings;
+extern structOtherSettings otherSettings;
+extern unsigned int eepromCheck;
+extern double setPoint, input, output;
+extern PID myPID;
+extern HardwareTimer hwTimer;
+extern HardwareTimer timerSeconds;
+extern HT1621 ht;
+extern MAX6675 thermocouple;
+
+#endif
+
+
