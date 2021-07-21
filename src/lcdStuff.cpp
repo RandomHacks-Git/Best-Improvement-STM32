@@ -1,7 +1,7 @@
 #include "global.h"
 
 void clearDigit(byte section, byte digitNumber) {
-  byte address;
+  byte address = 0;
   switch (section) {
     case MAIN:
       if (digitNumber == 1) address = 17;
