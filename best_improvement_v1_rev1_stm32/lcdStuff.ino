@@ -355,14 +355,14 @@ void blinkSelection() {
         sectionOff = true;
       }
       else { //turn on section
-        printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+        printNumber(MAIN, setTemp);
         sectionOff = false;
       }
       lastBlink = millis();
       break;
 
     case 2:
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       if (!sectionOff) {
         for (byte i = 25; i < 31; i++) {
           ht.writeMem(i, B0000);
@@ -433,7 +433,7 @@ void blinkSelection() {
 
 
 void stopBlinking() {
-  printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+  printNumber(MAIN, setTemp);
   printNumber(LEFT, setBlow);
   if (!heating) {
     if (timer) {
@@ -450,7 +450,7 @@ void stopBlinking() {
   }
   selectedSection = 0;
   if (otherSettings.selectedCh == 4) {
-    touchSettings.temp = setTemp;
+    touchSettings.temp = convertToC(setTemp);
     touchSettings.blow = setBlow;
     EEPROM_put(16, touchSettings);
     EEPROM_put(20, otherSettings);
