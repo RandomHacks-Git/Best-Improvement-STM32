@@ -1,5 +1,18 @@
 #include "global.h"
 
+// fix: error: identifier "strlwr" is undefined
+char *strlwr(char *str)
+{
+  unsigned char *p = (unsigned char *)str;
+
+  while (*p) {
+     *p = tolower((unsigned char)*p);
+      p++;
+  }
+
+  return str;
+}
+
 void clearDigit(byte section, byte digitNumber) {
   byte address = 0;
   switch (section) {
