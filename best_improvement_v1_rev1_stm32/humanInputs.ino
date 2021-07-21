@@ -23,9 +23,12 @@ void reactTouch() { //take action according to touched key
       }
       touched = false;
     }
-    else stepAmount = 10; //increase stepAmount if any setting is selected and up or down buttons are long pressed
+    else { //increase stepAmount if any setting is selected and up or down buttons are long pressed
+      if (otherSettings.tempUnit) stepAmount = 10; //fast stepAmount for ºC
+      else stepAmount = 20; //fast stepAmount for ºF
+    }
   }
-  //if (!otherSettings.tempUnit) stepAmount /= 1.8; //so the step amount remains 5 or 10 even when set to fahrenheit LOOK FOR A BETTER SOLUTION FOR THIS (I changed stepAmount's type back to byte as I'm not using this)
+
   if (touchedButton == SET && millis() - touchMillis > 1000) {
     stopBlinking();
     otherSettings.buzzer = !otherSettings.buzzer;
@@ -71,19 +74,21 @@ void reactTouch() { //take action according to touched key
 
   else if (touchedButton == UP) { //UP BUTTON
     if (selectedSection == 1) { //temp
-      if (setTemp + stepAmount < MAXTEMP) {
+      if (setTemp + stepAmount < handleTempUnit(MAXTEMP, otherSettings.tempUnit)) {
         setTemp += stepAmount;
-        if (otherSettings.selectedCh != 4) setTemp = 5 * int(setTemp / 5); //if it is the first time I modify the temperature with the touch channel (otherSettings.selectedCh isn't 4 yet) I round up the value to the nearest multiple of 5
+        if (otherSettings.selectedCh != 4 || converted || (!otherSettings.tempUnit && setTemp == 217)) { //if it is the first time I modify the temperature with the touch channel (otherSettings.selectedCh isn't 4 yet) or the temp unit changed or it is set to ºF and at the min temp (212ºF) I round up the value to the nearest multiple of 5
+          setTemp = 5 * int(setTemp / 5);
+          converted = false;
+        }
       }
-
       else {
-        setTemp = MAXTEMP;
+        setTemp = handleTempUnit(MAXTEMP, otherSettings.tempUnit);
         if (otherSettings.buzzer) {
           tone(PIEZO, 1000, 100);
           lastToneMillis = millis();
         }
       }
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       printChannel(4); //touch channel
       otherSettings.selectedCh = 4;
       lastReact = millis();
@@ -151,18 +156,21 @@ void reactTouch() { //take action according to touched key
   }
   else if (touchedButton == DOWN) { //DOWN BUTTON
     if (selectedSection == 1) {
-      if (setTemp - stepAmount > MINTEMP) {
+      if (setTemp - stepAmount > handleTempUnit(MINTEMP, otherSettings.tempUnit)) {
         setTemp -= stepAmount;
-        if (otherSettings.selectedCh != 4) setTemp = 5 * round(setTemp / 5.0F + 0.4); //if it is the first time I modify the temperature with the touch channel (otherSettings.selectedCh isn't 4 yet) I round up the value to the nearest multiple of 5
+        if (otherSettings.selectedCh != 4 || converted || (!otherSettings.tempUnit && setTemp == 994)) { //if it is the first time I modify the temperature with the touch channel (otherSettings.selectedCh isn't 4 yet) or the temp unit changed or it is set to ºF and at the max temp (999ºF) I round up the value to the nearest multiple of 5
+          setTemp = 5 * round(setTemp / 5.0F + 0.4);
+          converted = false;
+        }
       }
       else {
-        setTemp = MINTEMP;
+        setTemp = handleTempUnit(MINTEMP, otherSettings.tempUnit);
         if (otherSettings.buzzer) {
           tone(PIEZO, 1000, 100);
           lastToneMillis = millis();
         }
       }
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       printChannel(4); //touch channel
       otherSettings.selectedCh = 4;
       lastReact = millis();
@@ -229,24 +237,27 @@ void reactTouch() { //take action according to touched key
   }
 
   else if (touchedButton == CF && touchReleased) { // ºC/ºF BUTTON
-    otherSettings.tempUnit = !otherSettings.tempUnit;
-    if (otherSettings.tempUnit) { //ºC
+    if (!otherSettings.tempUnit) { //change to ºC
       changeSegment(10, 1, 0);
       changeSegment(10, 0, 1);
       if (selectedSection == 4) {
         changeSegment(24, 1, 0); //turn off ºF
         changeSegment(24, 0, 1); //turn on ºC
       }
+      setTemp = convertToC(setTemp); //convert to ºC
     }
-    else { //ºF
+    else { //change to ºF
       changeSegment(10, 0, 0);
       changeSegment(10, 1, 1);
       if (selectedSection == 4) {
         changeSegment(24, 0, 0); //turn off ºC
         changeSegment(24, 1, 1); //turn on ºF
       }
+      setTemp = handleTempUnit(setTemp, 0); //convert to ºF
     }
-    if (!selectedSection || selectedSection == 4) printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+    converted = true;
+    if (!selectedSection) printNumber(MAIN, setTemp);
+    otherSettings.tempUnit = !otherSettings.tempUnit;
     EEPROM_put(20, otherSettings);
     lastReact = millis();
     touched = false;
@@ -300,9 +311,9 @@ void handleButton() {
         printChannel(1);
         printNumber(MAIN, handleTempUnit(ch1Settings.temp, otherSettings.tempUnit));
         printNumber(LEFT, ch1Settings.blow);
-        if (setTemp > ch1Settings.temp && heating) setPointChanged = 1;
+        if (convertToC(setTemp) > ch1Settings.temp && heating) setPointChanged = 1;
         else setPointChanged = 2;
-        setTemp = ch1Settings.temp;
+        setTemp = handleTempUnit(ch1Settings.temp, otherSettings.tempUnit);
         setBlow = ch1Settings.blow;
       }
       setPointReached = false;
@@ -310,7 +321,7 @@ void handleButton() {
       btn1 = 0;
     }
     else if (millis() - btnMillis >= 1000) { //long press
-      ch1Settings.temp = setTemp;
+      ch1Settings.temp = convertToC(setTemp);
       ch1Settings.blow = setBlow;
       EEPROM_put(4, ch1Settings);
       if (otherSettings.buzzer) {
@@ -339,9 +350,9 @@ void handleButton() {
         printChannel(2);
         printNumber(MAIN, handleTempUnit(ch2Settings.temp, otherSettings.tempUnit));
         printNumber(LEFT, ch2Settings.blow);
-        if (setTemp > ch2Settings.temp && heating) setPointChanged = 1;
+        if (convertToC(setTemp) > ch2Settings.temp && heating) setPointChanged = 1;
         else setPointChanged = 2;
-        setTemp = ch2Settings.temp;
+        setTemp = handleTempUnit(ch2Settings.temp, otherSettings.tempUnit);
         setBlow = ch2Settings.blow;
       }
       setPointReached = false;
@@ -349,7 +360,7 @@ void handleButton() {
       btn2 = 0;
     }
     else if (millis() - btnMillis >= 1000) { //long press
-      ch2Settings.temp = setTemp;
+      ch2Settings.temp = convertToC(setTemp);
       ch2Settings.blow = setBlow;
       EEPROM_put(8, ch2Settings);
       if (otherSettings.buzzer) {
@@ -378,9 +389,9 @@ void handleButton() {
         printChannel(3);
         printNumber(MAIN, handleTempUnit(ch3Settings.temp, otherSettings.tempUnit));
         printNumber(LEFT, ch3Settings.blow);
-        if (setTemp > ch3Settings.temp && heating) setPointChanged = 1;
+        if (convertToC(setTemp) > ch3Settings.temp && heating) setPointChanged = 1;
         else setPointChanged = 2;
-        setTemp = ch3Settings.temp;
+        setTemp = handleTempUnit(ch3Settings.temp, otherSettings.tempUnit);
         setBlow = ch3Settings.blow;
       }
       setPointReached = false;
@@ -388,7 +399,7 @@ void handleButton() {
       btn3 = 0;
     }
     else if (millis() - btnMillis >= 1000) { //long press
-      ch3Settings.temp = setTemp;
+      ch3Settings.temp = convertToC(setTemp);
       ch3Settings.blow = setBlow;
       EEPROM_put(12, ch3Settings);
       if (otherSettings.buzzer) {
@@ -426,7 +437,7 @@ void defineBlower() {
 void defineTemp() {
   heaterVal = analogRead(AHEAT);
   //Serial.println(heaterVal);
-  unsigned short tempMap = map(heaterVal, 3, 4085, MAXTEMP, MINTEMP);
+  unsigned short tempMap = map(heaterVal, 3, 4085, handleTempUnit(MAXTEMP, otherSettings.tempUnit), handleTempUnit(MINTEMP, otherSettings.tempUnit));
   int change = setTemp - tempMap;
   if (millis() - potMillis <= 2000 || abs(change) >= 2) { //to avoid analogRead noise, remains responsive while turning knob but only accepts any change equal or greater than 2 if last pot change was more than 2 seconds ago
     if (otherSettings.selectedCh != 0) {
@@ -436,10 +447,10 @@ void defineTemp() {
     }
     if (heating && setTemp > tempMap) setPointChanged = 1;
     else setPointChanged = 2;
-    if (tempMap < MINTEMP) setTemp = MINTEMP;
-    else if (tempMap > MAXTEMP) setTemp = MAXTEMP;
+    if (tempMap < handleTempUnit(MINTEMP, otherSettings.tempUnit)) setTemp = handleTempUnit(MINTEMP, otherSettings.tempUnit);
+    else if (tempMap > handleTempUnit(MAXTEMP, otherSettings.tempUnit)) setTemp = handleTempUnit(MAXTEMP, otherSettings.tempUnit);
     else setTemp = tempMap;
-    printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+    printNumber(MAIN, setTemp);
     if (heating) newPotValue = true;
   }
   potMillis = millis();
