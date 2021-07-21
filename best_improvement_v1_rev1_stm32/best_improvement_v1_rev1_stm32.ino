@@ -50,6 +50,7 @@ MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
 #define HIGH_KD 0.32F
 
 //Miscellaneous
+#define FIRMWARE_VERSION 101 //firmware version (1.01)
 #define DEBOUNCETIME 10 //button debounce time
 #define LCDBRIGHTNESS 1 //default brightness, closer to 0 -> brighter, closer to 65535 -> dimmer
 #define LCDBRIGHTNESSDIM 25000 //standby brightness
@@ -57,8 +58,8 @@ MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
 #define MAXTEMP 550
 #define MINBLOW 35
 #define MAXBLOW 100
-#define SHUTDOWNTEMP 80 //below this temp the blower shuts off
-#define SETTINGSEXITTIME 7000 //if you are inside settings (blinking screen), it will automatically exit after this time (ms)
+#define SHUTDOWNTEMP 85 //below this temp the blower shuts off
+#define SETTINGSEXITTIME 8000 //if you are inside settings (blinking screen), it will automatically exit after this time (ms)
 #define WINDOWSIZE 205 //Heater PWM period size (ms)
 #define SERIALTIME 500 //Serial output time (ms)
 
@@ -98,6 +99,7 @@ bool timeUnit = 1;
 volatile bool timerFlag;
 volatile bool setPointReached;
 volatile byte setPointChanged = 2; //0 = no change, 1 = decreased, 2 = increased
+bool converted;
 bool newPotValue;
 unsigned long potMillis;
 unsigned long windowStartTime;
@@ -114,6 +116,7 @@ byte selectedSection;
 unsigned long lastBlink;
 bool sectionOff;
 bool switchDisplayed;
+bool displayingVersion = 1;
 
 struct chSettings {
   unsigned short temp;
@@ -224,27 +227,27 @@ void setup() {
       defineTemp();
       break;
     case 1: //ch1
-      setTemp = ch1Settings.temp;
+      setTemp = handleTempUnit(ch1Settings.temp, otherSettings.tempUnit);
       setBlow = ch1Settings.blow;
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       printNumber(LEFT, setBlow);
       break;
     case 2: //ch2
-      setTemp = ch2Settings.temp;
+      setTemp = handleTempUnit(ch2Settings.temp, otherSettings.tempUnit);
       setBlow = ch2Settings.blow;
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       printNumber(LEFT, setBlow);
       break;
     case 3: //ch3
-      setTemp = ch3Settings.temp;
+      setTemp = handleTempUnit(ch3Settings.temp, otherSettings.tempUnit);
       setBlow = ch3Settings.blow;
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       printNumber(LEFT, setBlow);
       break;
     case 4: //touch
-      setTemp = touchSettings.temp;
+      setTemp = handleTempUnit(touchSettings.temp, otherSettings.tempUnit);
       setBlow = touchSettings.blow;
-      printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit));
+      printNumber(MAIN, setTemp);
       printNumber(LEFT, setBlow);
   }
 
@@ -271,6 +274,9 @@ void setup() {
   else changeSegment(31, 2, 0); //handle in base turn off "handle" icon
 
   changeSegment(7, 1, otherSettings.serialOutput); //turn "RS232 On" segment on or off according to last setting
+
+  printNumber(RIGHT, FIRMWARE_VERSION); //print firmware version
+  changeSegment(14, 3, 1); //decimal point
 
   pwmWrite(BACKLIGHT, LCDBRIGHTNESS); //turn on backlight at default brightness
 
@@ -330,6 +336,16 @@ void setup() {
 }
 
 void loop() {
+  if (displayingVersion && millis() >= 1000) {
+    if (timer) printNumber(RIGHT, setTimer);
+    else {
+      for ( byte i = 11; i < 16; i++) {
+        ht.writeMem(i, 0);
+      }
+      changeSegment(16, 3, 1); //off icon
+    }
+    displayingVersion = false;
+  }
   if (timerFlag) {
     printNumber(RIGHT, timerTemporary);
     timerFlag = false;
@@ -453,7 +469,7 @@ void loop() {
   if (blowerOn && !heating && readTemp(1) < SHUTDOWNTEMP) { //turn blower off
     pwmWrite(BLOWER, 0);//turn off blower
     digitalWrite(HEATER, LOW); //turn off heater, just to be triple safe
-    printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit)); //display set temp on main section
+    printNumber(MAIN, setTemp); //display set temp on main section
     blowerOn = false;
     if (reedStatus) {
       ht.writeMem(23, 0); //turn of temp icon
@@ -507,7 +523,7 @@ void loop() {
           changeSegment(24, 0, 0); //turn off ºC
           changeSegment(24, 1, 1); //turn on ºF
         }
-        printNumber(LEFT, handleTempUnit(setTemp, otherSettings.tempUnit)); //print temperature
+        printNumber(LEFT, setTemp); //print temperature
       }
       switchDisplayed = !switchDisplayed;
     }
@@ -524,9 +540,9 @@ void loop() {
     lastTempIcon = millisecs;
   }
 
-  if (!selectedSection && !setPointReached && heating && millis() - potMillis >= 1000 && ((setPointChanged == 1 && readTemp(1) <= calibrateTemp(1)) || (setPointChanged == 2 && readTemp(1) >= calibrateTemp(1))))  {//beep and start counting when setPoint is reached
+  if (!selectedSection && !setPointReached && heating && millis() - potMillis >= 1000 && ((setPointChanged == 1 && readTemp(otherSettings.tempUnit) <= calibrateTemp(1)) || (setPointChanged == 2 && readTemp(otherSettings.tempUnit) >= calibrateTemp(1))))  {//beep and start counting when setPoint is reached
     setPointReached = true;
-    printNumber(MAIN, handleTempUnit(setTemp, otherSettings.tempUnit)); //display set temp on main section
+    printNumber(MAIN, setTemp); //display set temp on main section
     changeSegment(24, 0, 0); //turn off ºC
     changeSegment(24, 1, 0); //turn off ºF
     changeSegment(31, 0, 1); //turn on Set
@@ -556,12 +572,12 @@ void loop() {
     Serial.print("Temp: ");
     if (heating || blowerOn) {
       if (!setPointReached) Serial.print(calibrateTemp(0));
-      else Serial.print(handleTempUnit(setTemp, otherSettings.tempUnit));
+      else Serial.print(setTemp);
     }
     else Serial.print("OFF");
     Serial.print("/");
     if (heating) {
-      Serial.print(handleTempUnit(setTemp, otherSettings.tempUnit));
+      Serial.print(setTemp);
       if (otherSettings.tempUnit) Serial.println("ºC");
       else Serial.println("ºF");
     }
