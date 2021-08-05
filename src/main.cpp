@@ -89,6 +89,15 @@ MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
 
 
 void setup() {
+  // fix: blank lcd screen, when building or flashing with SWD protocol
+  // for details see: https://www.stm32duino.com/viewtopic.php?t=713
+  // 
+  // roger's libmaple is supposed to call disableDebugPorts(); to release all jtag pins to GPIO usage, here:
+  // https://github.com/rogerclarkmelbourne/Arduino_STM32/blob/master/STM32F1/variants/generic_stm32f103c/board.cpp#L48-L50
+  // however for some reason this does not work. maybe it gets skipped over by the #define
+  // the JTAG pins remain disabled, until calling this method will keep the SWD pins but release the remaining JTAG ones
+  enableDebugPorts();
+
   Serial.begin(115200);
   unsigned int tempEepromCheck;
   EEPROM_get(0, tempEepromCheck);
