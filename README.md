@@ -1,7 +1,7 @@
 ## Best Improvement v1 (STM32) Source Code
 
 In this repo you find the source code for my *Best Improvement v1* board, a better board with better firmware to control the Best BST-863 hot air station.
-This is for v1 only (STM32 microcontroller), if you are looking for v1.5 (RP2040) click here (soon).
+This is for v1 only (STM32 microcontroller), if you are looking for v1.5 (RP2040) click [here](https://github.com/RandomHacks-Git/Best-Improvement-RP2040).
 
 ![P_20210616_151618](https://user-images.githubusercontent.com/22402348/122618720-c0933500-d086-11eb-9c9e-343b56c9db97.jpg)
 
