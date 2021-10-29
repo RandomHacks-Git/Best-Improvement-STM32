@@ -1,5 +1,20 @@
+#include "global.h"
+
+// fix: error: identifier "strlwr" is undefined
+char *strlwr(char *str)
+{
+  unsigned char *p = (unsigned char *)str;
+
+  while (*p) {
+     *p = tolower((unsigned char)*p);
+      p++;
+  }
+
+  return str;
+}
+
 void clearDigit(byte section, byte digitNumber) {
-  byte address;
+  byte address = 0;
   switch (section) {
     case MAIN:
       if (digitNumber == 1) address = 17;
@@ -459,6 +474,6 @@ void stopBlinking() {
 
 void changeSegment(byte address, byte bit, bool value) { //changes a single segment
   byte nowSet = ht.readMem(address); //check what is currently being displayed on address so we only change what we want
-  nowSet = bitWrite(nowSet, bit, value); //change only the segment we want (bit)
+  bitWrite(nowSet, bit, value); //change only the segment we want (bit)
   ht.writeMem(address, nowSet);
 }

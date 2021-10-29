@@ -3,78 +3,9 @@
 //to install windows drivers see https://github.com/rogerclarkmelbourne/Arduino_STM32/wiki/Maple-drivers
 //if there is an error while compiling you might need to install SAMD M0+ boards on Arduino IDE
 
-#include <Wire.h> //for touch ic
-#include <EEPROM.h>
-#include "ht1621.h" //LCD controller https://github.com/altLab/HT1621
-#include "max6675.h" //https://learn.adafruit.com/thermocouple/arduino-code
-#include <PID_v1.h> //https://github.com/br3ttb/Arduino-PID-Library 
+#define __MAIN_CPP__
+#include "global.h"
 
-//LCD section addresses
-#define MAIN 17
-#define LEFT 25
-#define RIGHT 11
-#define SMALL 8
-
-//Touch buttons mapping
-#define UP 128
-#define DOWN 64
-#define SET 32
-#define CF 16
-
-//Pins
-HT1621 ht(PB9, PA15, PA8, PB15); // LCD data,wr,rd,cs
-#define BACKLIGHT PB8
-#define TOUCHINT PA2 //touch interrupt
-#define PIEZO PA3
-#define REEDINT PB5 //reed switch pin
-#define BLOWER PB0 //blower pin
-#define HEATER PB3 //heater pin
-#define BTN1 PB12 //physical button 1
-#define BTN2 PB13 //physical button 2
-#define BTN3 PB14 //physical button 3
-#define AHEAT PA0 //temperature pot analog pin 
-#define ABLOW PA1 //blower pot analog pin                                          
-
-//thermocouple pins
-#define THERMO_CLK PA5
-#define THERMO_CS PA4
-#define THERMO_DO PA6
-MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
-
-//PID
-#define KP 3.2F
-#define KI 0.17F
-#define KD 1.5F
-#define HIGH_KP 3.2F
-#define HIGH_KI 0.08F
-#define HIGH_KD 0.32F
-
-//Miscellaneous
-#define FIRMWARE_VERSION 101 //firmware version (1.01)
-#define DEBOUNCETIME 10 //button debounce time
-#define LCDBRIGHTNESS 1 //default brightness, closer to 0 -> brighter, closer to 65535 -> dimmer
-#define LCDBRIGHTNESSDIM 25000 //standby brightness
-#define MINTEMP 100
-#define MAXTEMP 550
-#define MINBLOW 35
-#define MAXBLOW 100
-#define SHUTDOWNTEMP 85 //below this temp the blower shuts off
-#define SETTINGSEXITTIME 8000 //if you are inside settings (blinking screen), it will automatically exit after this time (ms)
-#define WINDOWSIZE 205 //Heater PWM period size (ms)
-#define SERIALTIME 500 //Serial output time (ms)
-
-//Calibration factors (so the air that comes OUT OF THE NOZZLE actually reaches the set temperature)
-#define RANGE200 1.05
-#define RANGE300 1.08
-#define RANGE400 1.11
-
-// touch IC address / registers
-#define touchAddress 0x56 // Device address
-#define keyValues 0x34 // Hexadecimal address for the key values register
-#define sysCon 0x3A //hex value for config register
-#define kdr0 0x23 //hex value for key disable register
-#define mcon 0x21 //hex value for mode control register
-#define gsr 0x20 //hex address for global sensitivity register
 
 volatile unsigned long touchMillis;
 volatile bool touched, touchReleased = 1;
@@ -123,7 +54,7 @@ struct chSettings {
   unsigned short blow;
 };
 
-struct otherSettings {
+struct structOtherSettings {
   bool tempUnit; //1 for ºC, 0 for ºF
   bool buzzer;
   byte selectedCh;
@@ -132,7 +63,7 @@ struct otherSettings {
 };
 
 chSettings ch1Settings, ch2Settings, ch3Settings, touchSettings;
-otherSettings otherSettings;
+structOtherSettings otherSettings;
 
 unsigned int eepromCheck = 1234567890; //used in setup to check if settings where previously saved to flash (emulated eeprom)
 
@@ -148,7 +79,25 @@ PID myPID(&input, &output, &setPoint, KP, KI, KD, P_ON_E, DIRECT);
 HardwareTimer hwTimer(3);//pwm
 HardwareTimer timerSeconds(1);//time timer
 
+//Pins
+HT1621 ht(PB9, PA15, PA8, PB15); // LCD data,wr,rd,cs
+
+//thermocouple pins
+MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
+
+
+
+
 void setup() {
+  // fix: blank lcd screen, when building or flashing with SWD protocol
+  // for details see: https://www.stm32duino.com/viewtopic.php?t=713
+  // 
+  // roger's libmaple is supposed to call disableDebugPorts(); to release all jtag pins to GPIO usage, here:
+  // https://github.com/rogerclarkmelbourne/Arduino_STM32/blob/master/STM32F1/variants/generic_stm32f103c/board.cpp#L48-L50
+  // however for some reason this does not work. maybe it gets skipped over by the #define
+  // the JTAG pins remain disabled, until calling this method will keep the SWD pins but release the remaining JTAG ones
+  enableDebugPorts();
+
   Serial.begin(115200);
   unsigned int tempEepromCheck;
   EEPROM_get(0, tempEepromCheck);

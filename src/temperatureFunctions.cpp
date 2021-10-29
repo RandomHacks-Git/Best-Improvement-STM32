@@ -1,3 +1,5 @@
+#include "global.h"
+
 float readTemp(bool unit) {
   if (millis() - lastTempRead >= 200 || currentTemp == 0) {
     float temperature = thermocouple.readCelsius();
@@ -102,4 +104,5 @@ int calibrateTemp(bool type) {
       else return handleTempUnit((readTemp(1) - otherSettings.calTemp), 0); //ºF
     }
   }
+  return -1;
 }

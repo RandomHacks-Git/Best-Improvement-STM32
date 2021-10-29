@@ -1,3 +1,5 @@
+#include "global.h"
+
 //add eeprom put and get functions (source https://www.stm32duino.com/viewtopic.php?t=314)
 
 template <class T> void EEPROM_get (int ee, T& value) {

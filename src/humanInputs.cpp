@@ -1,9 +1,12 @@
+#include "global.h"
+
 byte readTouch() { //ask touch ic which button was touched
   Wire.beginTransmission(touchAddress);//(0x56); Begin transmission to the ic
   Wire.write(byte(keyValues)); //Ask the particular register for data
   Wire.endTransmission(); // Ends the transmission and transmits the data from the register
   Wire.requestFrom(touchAddress, 1);  // Request the transmitted byte from the register
   if (Wire.available()) return Wire.read(); // Reads and returns the data from the register
+  return 0x00;
 }
 
 void reactTouch() { //take action according to touched key
